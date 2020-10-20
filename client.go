@@ -1,4 +1,4 @@
-package resengo
+package maventa
 
 import (
 	"bytes"
@@ -10,19 +10,20 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
-	"strconv"
 	"strings"
 	"text/template"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/omniboost/go-resengo/utils"
+	"github.com/omniboost/go-maventa/utils"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
 
 const (
 	libraryVersion = "0.0.1"
-	userAgent      = "go-resengo/" + libraryVersion
+	userAgent      = "go-maventa/" + libraryVersion
 	mediaType      = "application/json"
 	charset        = "utf-8"
 )
@@ -30,16 +31,15 @@ const (
 var (
 	BaseURL = url.URL{
 		Scheme: "https",
-		Host:   "{{.api}}.resengo.com",
+		Host:   "ax.maventa.com",
 		Path:   "",
 	}
 )
 
 // NewClient returns a new Exact Globe Client client
-func NewClient(httpClient *http.Client, companyID int, clientID string, clientSecret string) *Client {
+func NewClient(httpClient *http.Client, clientID string, clientSecret string) *Client {
 	client := &Client{}
 
-	client.SetCompanyID(companyID)
 	client.SetClientID(clientID)
 	client.SetClientSecret(clientSecret)
 	client.SetBaseURL(BaseURL)
@@ -65,7 +65,6 @@ type Client struct {
 	baseURL url.URL
 
 	// credentials
-	companyID    int
 	clientID     string
 	clientSecret string
 
@@ -84,9 +83,11 @@ type Client struct {
 type RequestCompletionCallback func(*http.Request, *http.Response)
 
 func (c *Client) DefaultClient() *http.Client {
-	u := c.GetEndpointURL("connect/token", AccessTokenPathParams{})
-	u.Host = strings.Replace(u.Host, "{{.api}}", "login", -1)
+	u := c.GetEndpointURL("/oauth2/token", AccessTokenPathParams{})
 
+	baseURL := c.BaseURL()
+	u2 := baseURL.String()
+	oauth2.RegisterBrokenAuthHeaderProvider(u2)
 	config := &clientcredentials.Config{
 		ClientID:     c.ClientID(),
 		ClientSecret: c.ClientSecret(),
@@ -115,14 +116,6 @@ func (c Client) Debug() bool {
 
 func (c *Client) SetDebug(debug bool) {
 	c.debug = debug
-}
-
-func (c Client) CompanyID() int {
-	return c.companyID
-}
-
-func (c *Client) SetCompanyID(companyID int) {
-	c.companyID = companyID
 }
 
 func (c Client) ClientID() string {
@@ -188,7 +181,6 @@ func (c *Client) GetEndpointURL(path string, pathParams PathParams) url.URL {
 
 	buf := new(bytes.Buffer)
 	params := pathParams.Params()
-	params["company_id"] = strconv.Itoa(c.CompanyID())
 	err = tmpl.Execute(buf, params)
 	if err != nil {
 		log.Fatal(err)
@@ -237,10 +229,10 @@ func (c *Client) NewRequest(ctx context.Context, method string, URL url.URL, bod
 // pointed to by v, or returned as an error if an Client error has occurred. If v implements the io.Writer interface,
 // the raw response will be written to v, without attempting to decode it.
 func (c *Client) Do(req *http.Request, responseBody interface{}) (*http.Response, error) {
-	// if c.debug == true {
-	// 	dump, _ := httputil.DumpRequestOut(req, true)
-	// 	log.Println(string(dump))
-	// }
+	if c.debug == true {
+		dump, _ := httputil.DumpRequestOut(req, true)
+		log.Println(string(dump))
+	}
 
 	httpResp, err := c.http.Do(req)
 	if err != nil {
@@ -258,16 +250,16 @@ func (c *Client) Do(req *http.Request, responseBody interface{}) (*http.Response
 		}
 	}()
 
-	// if c.debug == true {
-	// 	dump, _ := httputil.DumpResponse(httpResp, true)
-	// 	log.Println(string(dump))
-	// }
+	if c.debug == true {
+		dump, _ := httputil.DumpResponse(httpResp, true)
+		log.Println(string(dump))
+	}
 
 	// check if the response isn't an error
-	// err = CheckResponse(httpResp)
-	// if err != nil {
-	// 	return httpResp, err
-	// }
+	err = CheckResponse(httpResp)
+	if err != nil {
+		return httpResp, err
+	}
 
 	// check the provided interface parameter
 	if httpResp == nil {

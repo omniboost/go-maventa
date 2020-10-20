@@ -1,4 +1,4 @@
-package resengo_test
+package maventa_test
 
 import (
 	"encoding/json"
@@ -6,9 +6,8 @@ import (
 	"testing"
 )
 
-func TestDeleteEventReservations(t *testing.T) {
-	req := client.NewDeleteEventReservationsRequest()
-	req.PathParams().EventReservationID = 43160542
+func TestGetStatusAuthenticated(t *testing.T) {
+	req := client.NewGetStatusAuthenticatedRequest()
 	resp, err := req.Do()
 	if err != nil {
 		t.Error(err)
