@@ -36,7 +36,6 @@ func (r PostInvoiceRequest) NewPostInvoiceQueryParams() *PostInvoiceQueryParams 
 }
 
 type PostInvoiceQueryParams struct {
-	Direction string `schema:"direction"`
 }
 
 func (p PostInvoiceQueryParams) ToURLValues() (url.Values, error) {
