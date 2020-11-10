@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<Finvoice xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="3.0" xsi:noNamespaceSchemaLocation="Finvoice3.0.xsd">
+  <MessageTransmissionDetails>
+    <MessageSenderDetails>
+      <FromIdentifier>From Identifier</FromIdentifier>
+      <FromIntermediator>From Intermediator</FromIntermediator>
+    </MessageSenderDetails>
+    <MessageReceiverDetails>
+      <ToIdentifier>To Identifier</ToIdentifier>
+      <ToIntermediator>To Intermediator</ToIntermediator>
+    </MessageReceiverDetails>
+    <MessageDetails>
+      <MessageIdentifier>Message Identifier</MessageIdentifier>
+      <MessageTimeStamp>2020-10-26T13:08:49+01:00</MessageTimeStamp>
+      <RefToMessageIdentifier/>
+    </MessageDetails>
+  </MessageTransmissionDetails>
+  <SellerPartyDetails>
+    <SellerPartyIdentifier>9876543-0</SellerPartyIdentifier>
+    <SellerPartyIdentifierUrlText/>
+    <SellerOrganisationName>Seller Organisation Name</SellerOrganisationName>
+    <SellerOrganisationTaxCode/>
+    <SellerPostalAddressDetails>
+      <SellerStreetName>TEST</SellerStreetName>
+      <SellerTownName>TEST</SellerTownName>
+      <SellerPostCodeIdentifier>TEST</SellerPostCodeIdentifier>
+      <CountryCode>NL</CountryCode>
+    </SellerPostalAddressDetails>
+  </SellerPartyDetails>
+  <SellerCommunicationDetails>
+    <SellerEmailaddressIdentifier>seller2@omniboost.io</SellerEmailaddressIdentifier>
+  </SellerCommunicationDetails>
+  <SellerInformationDetails>
+    <SellerCommonEmailaddressIdentifier>seller@omniboost.io</SellerCommonEmailaddressIdentifier>
+  </SellerInformationDetails>
+  <BuyerPartyDetails>
+    <BuyerPartyIdentifier>Buyer Party Identifier</BuyerPartyIdentifier>
+    <BuyerOrganisationName>Omniboost B.V.</BuyerOrganisationName>
+    <BuyerOrganisationTaxCode/>
+    <BuyerPostalAddressDetails>
+      <BuyerStreetName>Stadhuisplein 3</BuyerStreetName>
+      <BuyerTownName>Terneuzen</BuyerTownName>
+      <BuyerPostCodeIdentifier>4531GZ</BuyerPostCodeIdentifier>
+      <CountryCode>NL</CountryCode>
+      <CountryName>Netherlands</CountryName>
+      <BuyerPostOfficeBoxIdentifier/>
+    </BuyerPostalAddressDetails>
+  </BuyerPartyDetails>
+  <BuyerCommunicationDetails>
+    <BuyerEmailaddressIdentifier>buyer@omniboost.io</BuyerEmailaddressIdentifier>
+  </BuyerCommunicationDetails>
+  <DeliveryDetails>
+    <DeliveryDate Format="CCYYMMDD">19820412</DeliveryDate>
+  </DeliveryDetails>
+  <InvoiceDetails>
+    <InvoiceTypeCode>INV01</InvoiceTypeCode>
+    <InvoiceTypeText>Invoice</InvoiceTypeText>
+    <OriginCode>Original</OriginCode>
+    <InvoiceNumber>69</InvoiceNumber>
+    <InvoiceDate Format="CCYYMMDD">19820412</InvoiceDate>
+    <SellerReferenceIdentifier>Seller Reference Identifier</SellerReferenceIdentifier>
+    <BuyersSellerIdentifier>Buyers Seller Identifier</BuyersSellerIdentifier>
+    <SellersBuyerIdentifier>Sellers Buyer Identifier</SellersBuyerIdentifier>
+    <OrderIdentifier>Order Identifier</OrderIdentifier>
+    <BuyerReferenceIdentifier>Buyer Reference Identifier</BuyerReferenceIdentifier>
+    <ProjectReferenceIdentifier/>
+    <DefinitionDetails>
+      <DefinitionHeaderText/>
+    </DefinitionDetails>
+    <InvoiceTotalVatExcludedAmount AmountCurrencyIdentifier="EUR">12,00</InvoiceTotalVatExcludedAmount>
+    <InvoiceTotalVatAmount AmountCurrencyIdentifier="EUR">12,00</InvoiceTotalVatAmount>
+    <InvoiceTotalVatIncludedAmount AmountCurrencyIdentifier="EUR">12,00</InvoiceTotalVatIncludedAmount>
+    <VatSpecificationDetails>
+      <VatBaseAmount AmountCurrencyIdentifier="EUR">12,00</VatBaseAmount>
+      <VatRatePercent>12</VatRatePercent>
+      <VatRateAmount AmountCurrencyIdentifier="EUR">12,00</VatRateAmount>
+    </VatSpecificationDetails>
+    <PaymentTermsDetails>
+      <PaymentTermsFreeText/>
+      <PaymentOverDueFineDetails>
+        <PaymentOverDueFineFreeText/>
+      </PaymentOverDueFineDetails>
+    </PaymentTermsDetails>
+  </InvoiceDetails>
+  <PaymentStatusDetails/>
+  <InvoiceRow>
+    <ArticleIdentifier>Article Identifier</ArticleIdentifier>
+    <ArticleName>Test row</ArticleName>
+    <InvoicedQuantity QuantityUnitCode="EUR">121,00</InvoicedQuantity>
+    <RowFreeText/>
+    <RowVatAmount AmountCurrencyIdentifier="EUR">21,00</RowVatAmount>
+    <RowVatExcludedAmount AmountCurrencyIdentifier="EUR">100,00</RowVatExcludedAmount>
+  </InvoiceRow>
+  <EpiDetails>
+    <EpiIdentificationDetails>
+      <EpiDate Format="CCYYMMDD">19820412</EpiDate>
+      <EpiReference/>
+    </EpiIdentificationDetails>
+    <EpiPartyDetails>
+      <EpiBfiPartyDetails>
+        <EpiBfiIdentifier IdentificationSchemeName="BIC">BANKFIHH</EpiBfiIdentifier>
+      </EpiBfiPartyDetails>
+      <EpiBeneficiaryPartyDetails>
+        <EpiNameAddressDetails>TEST</EpiNameAddressDetails>
+        <EpiBei>5647382910</EpiBei>
+        <EpiAccountID IdentificationSchemeName="IBAN">FI2757800750155448</EpiAccountID>
+      </EpiBeneficiaryPartyDetails>
+    </EpiPartyDetails>
+    <EpiPaymentInstructionDetails>
+      <EpiPaymentInstructionId/>
+      <EpiRemittanceInfoIdentifier IdentificationSchemeName="ISO">RF471234567890</EpiRemittanceInfoIdentifier>
+      <EpiInstructedAmount AmountCurrencyIdentifier="EUR">12,00</EpiInstructedAmount>
+      <EpiCharge ChargeOption="SLEV"/>
+      <EpiDateOptionDate Format="CCYYMMDD">19820412</EpiDateOptionDate>
+    </EpiPaymentInstructionDetails>
+  </EpiDetails>
+</Finvoice>
+

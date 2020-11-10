@@ -18,9 +18,10 @@ func TestMain(m *testing.M) {
 	baseURLString := os.Getenv("BASE_URL")
 	clientID := os.Getenv("CLIENT_ID")
 	clientSecret := os.Getenv("CLIENT_SECRET")
+	vendorAPIKey := os.Getenv("VENDOR_API_KEY")
 	debug := os.Getenv("DEBUG")
 
-	client = maventa.NewClient(nil, clientID, clientSecret)
+	client = maventa.NewClient(nil, clientID, clientSecret, vendorAPIKey)
 	if debug != "" {
 		client.SetDebug(true)
 	}

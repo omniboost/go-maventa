@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -37,11 +38,12 @@ var (
 )
 
 // NewClient returns a new Exact Globe Client client
-func NewClient(httpClient *http.Client, clientID string, clientSecret string) *Client {
+func NewClient(httpClient *http.Client, clientID, clientSecret, vendorAPIKey string) *Client {
 	client := &Client{}
 
 	client.SetClientID(clientID)
 	client.SetClientSecret(clientSecret)
+	client.SetVendorAPIKey(vendorAPIKey)
 	client.SetBaseURL(BaseURL)
 	client.SetDebug(false)
 	client.SetUserAgent(userAgent)
@@ -67,6 +69,7 @@ type Client struct {
 	// credentials
 	clientID     string
 	clientSecret string
+	vendorAPIKey string
 
 	// User agent for client
 	userAgent string
@@ -93,16 +96,37 @@ func (c *Client) DefaultClient() *http.Client {
 		ClientSecret: c.ClientSecret(),
 		Scopes:       c.Scopes(),
 		TokenURL:     u.String(),
+		EndpointParams: url.Values(map[string][]string{
+			"vendor_api_key": []string{c.VendorAPIKey()},
+		}),
 	}
 	return config.Client(context.Background())
 }
 
 func (c *Client) Scopes() []string {
 	return []string{
-		"ReservationApi_Client",
-		// "FeedbackApi_Client",
-		// "PersonApi_Client",
-		// "Availability_Client",
+		// "eui",     // Recommended to use when integrating to EUI. Alias for eui:open, company:read, company:write, lookup, receivables:assignments, document:send, document:receive, invoice:receive, invoice:send
+		"global",                  // Alias for company:read, document:receive, document:send, lookup
+		"company",                 // Alias for company:read, company:write
+		"lookup",                  // grants access to the lookup operations
+		"document:receive",        // grants access to document receive operations
+		"document:send",           // grants access to document send operations
+		"invoice:receive",         // grants access to invoice receive operations
+		"invoice:send",            // grants access to invoice send operations
+		"company:read",            // grants read access to company settings, profiles and notifications
+		"company:write",           // grants write access to company settings, profiles and notifications
+		"validate",                // grants access to the AutoInvoice validator service
+		"receivables:assignments", // grants access to assignments in the receivables service
+		"analysis",                // grants access to analysis service
+		// "operator:documents:receive",       // grants access to fetch received documents
+		// "operator:documents:send",          // grants access to send documents
+		// "operator:lookup", // grants access to perform actions related to lookups
+		// "operator:participants",            // grants access to perform actions on operator participants
+		// "operator:notifications",           // grants access to perform actions on operator notifications
+		// "operator:validate", // grants access to the AutoInvoice validator service
+		// "operator:receivables:assignments", // grants access to assignments the receivables service
+		// "operator:receivables:assignments:create", // grants access to create assignments in the receivables servicee
+		// "operator:analysis",                       // grants access to analysis service
 	}
 }
 
@@ -122,16 +146,24 @@ func (c Client) ClientID() string {
 	return c.clientID
 }
 
-func (c *Client) SetClientID(ClientID string) {
-	c.clientID = ClientID
+func (c *Client) SetClientID(clientID string) {
+	c.clientID = clientID
 }
 
 func (c Client) ClientSecret() string {
 	return c.clientSecret
 }
 
-func (c *Client) SetClientSecret(ClientSecret string) {
-	c.clientSecret = ClientSecret
+func (c *Client) SetClientSecret(clientSecret string) {
+	c.clientSecret = clientSecret
+}
+
+func (c Client) VendorAPIKey() string {
+	return c.vendorAPIKey
+}
+
+func (c *Client) SetVendorAPIKey(vendorAPIKey string) {
+	c.vendorAPIKey = vendorAPIKey
 }
 
 func (c Client) BaseURL() url.URL {
@@ -219,6 +251,57 @@ func (c *Client) NewRequest(ctx context.Context, method string, URL url.URL, bod
 
 	// set other headers
 	req.Header.Add("Content-Type", fmt.Sprintf("%s; charset=%s", c.MediaType(), c.Charset()))
+	req.Header.Add("Accept", c.MediaType())
+	req.Header.Add("User-Agent", c.UserAgent())
+
+	return req, nil
+}
+
+func (c *Client) NewFormRequest(ctx context.Context, method string, URL url.URL, form Form) (*http.Request, error) {
+	body := &bytes.Buffer{}
+	w := multipart.NewWriter(body)
+
+	for k, vv := range form.Values() {
+		for _, v := range vv {
+			err := w.WriteField(k, v)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	for k, f := range form.Files() {
+		part, err := w.CreateFormFile(k, f.Filename)
+		if err != nil {
+			return nil, err
+		}
+		_, err = io.Copy(part, f.Reader)
+	}
+
+	err := w.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// create new http request
+	req, err := http.NewRequest(method, URL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	values := url.Values{}
+	err = utils.AddURLValuesToRequest(values, req, true)
+	if err != nil {
+		return nil, err
+	}
+
+	// optionally pass along context
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	// set other headers
+	req.Header.Add("Content-Type", fmt.Sprintf("%s; charset=%s", w.FormDataContentType(), c.Charset()))
 	req.Header.Add("Accept", c.MediaType())
 	req.Header.Add("User-Agent", c.UserAgent())
 
