@@ -16,7 +16,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/omniboost/go-maventa/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -368,22 +367,14 @@ func (c *Client) Do(req *http.Request, responseBody interface{}) (*http.Response
 		return httpResp, nil
 	}
 
-	errResp1 := struct {
-		Errors Errors
-	}{}
-	errResp2 := ""
-
-	err = c.Unmarshal(httpResp.Body, &responseBody, &errResp1, &errResp2)
+	apiError := APIError{}
+	err = c.Unmarshal(httpResp.Body, &responseBody, &apiError)
 	if err != nil {
 		return httpResp, err
 	}
 
-	if errResp1.Errors.Error() != "" {
-		return httpResp, errResp1.Errors
-	}
-
-	if errResp2 != "" {
-		return httpResp, errors.New(errResp2)
+	if apiError.Error() != "" {
+		return httpResp, &ErrorResponse{Response: httpResp, err: apiError}
 	}
 
 	return httpResp, nil
@@ -453,12 +444,12 @@ func CheckResponse(r *http.Response) error {
 
 	err = checkContentType(r)
 	if err != nil {
-		errorResponse.Errors = err
+		errorResponse.err = err
 		return errorResponse
 	}
 
 	if len(data) == 0 {
-		errorResponse.Errors = errors.New("response body is empty")
+		errorResponse.err = errors.New("response body is empty")
 		return errorResponse
 	}
 
@@ -469,46 +460,29 @@ type ErrorResponse struct {
 	// HTTP response that caused this error
 	Response *http.Response `json:"-"`
 
-	Errors  error  `json:"errors"`
-	Type    string `json:"type"`
-	Title   string `json:"title"`
-	Status  int    `json:"status"`
-	TraceID string `json:"traceId"`
+	err error `json:"errors"`
 }
 
 func (r ErrorResponse) Error() string {
-	if r.Errors == nil {
+	if r.Error == nil {
 		return ""
 	}
-	return r.Errors.Error()
+	return r.err.Error()
 }
 
-type Errors struct {
-	SMSReceptionStatus   []string `json:"smsReceptionStatus"`
-	CommunicationStatus  []string `json:"communicationStatus"`
-	EmailReceptionStatus []string `json:"emailReceptionStatus"`
+// {"code":"invoice_create_api_error","message":"Error while creating invoice","details":["ERROR: INVOICE DATE NOT FOUND"]}
+type APIError struct {
+	Code    string   `json:"code"`
+	Message string   `json:"message"`
+	Details []string `json:"details"`
 }
 
-func (e Errors) Error() string {
-	var errs *multierror.Error
-
-	for _, e := range e.SMSReceptionStatus {
-		errs = multierror.Append(errs, errors.New(e))
-	}
-
-	for _, e := range e.CommunicationStatus {
-		errs = multierror.Append(errs, errors.New(e))
-	}
-
-	for _, e := range e.EmailReceptionStatus {
-		errs = multierror.Append(errs, errors.New(e))
-	}
-
-	if errs == nil {
+func (e APIError) Error() string {
+	if e.Code == "" {
 		return ""
 	}
 
-	return errs.Error()
+	return fmt.Sprintf("%s: %s (%s)", e.Code, e.Message, strings.Join(e.Details, ", "))
 }
 
 func checkContentType(response *http.Response) error {
