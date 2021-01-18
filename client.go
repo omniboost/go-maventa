@@ -34,6 +34,11 @@ var (
 		Host:   "ax.maventa.com",
 		Path:   "",
 	}
+	ValidatorURL = url.URL{
+		Scheme: "https",
+		Host:   "validator.maventa.com",
+		Path:   "",
+	}
 )
 
 // NewClient returns a new Exact Globe Client client
@@ -44,6 +49,7 @@ func NewClient(httpClient *http.Client, clientID, clientSecret, vendorAPIKey str
 	client.SetClientSecret(clientSecret)
 	client.SetVendorAPIKey(vendorAPIKey)
 	client.SetBaseURL(BaseURL)
+	client.SetValidatorURL(ValidatorURL)
 	client.SetDebug(false)
 	client.SetUserAgent(userAgent)
 	client.SetMediaType(mediaType)
@@ -62,8 +68,9 @@ type Client struct {
 	// HTTP client used to communicate with the Client.
 	http *http.Client
 
-	debug   bool
-	baseURL url.URL
+	debug        bool
+	baseURL      url.URL
+	validatorURL url.URL
 
 	// credentials
 	clientID     string
@@ -85,7 +92,7 @@ type Client struct {
 type RequestCompletionCallback func(*http.Request, *http.Response)
 
 func (c *Client) DefaultClient() *http.Client {
-	u := c.GetEndpointURL("/oauth2/token", AccessTokenPathParams{})
+	u := c.GetEndpointURL(c.BaseURL(), "/oauth2/token", AccessTokenPathParams{})
 
 	baseURL := c.BaseURL()
 	u2 := baseURL.String()
@@ -173,6 +180,14 @@ func (c *Client) SetBaseURL(baseURL url.URL) {
 	c.baseURL = baseURL
 }
 
+func (c Client) ValidatorURL() url.URL {
+	return c.validatorURL
+}
+
+func (c *Client) SetValidatorURL(validatorURL url.URL) {
+	c.validatorURL = validatorURL
+}
+
 func (c *Client) SetMediaType(mediaType string) {
 	c.mediaType = mediaType
 }
@@ -201,8 +216,8 @@ func (c *Client) SetDisallowUnknownFields(disallowUnknownFields bool) {
 	c.disallowUnknownFields = disallowUnknownFields
 }
 
-func (c *Client) GetEndpointURL(path string, pathParams PathParams) url.URL {
-	clientURL := c.BaseURL()
+func (c *Client) GetEndpointURL(base url.URL, path string, pathParams PathParams) url.URL {
+	clientURL := base
 	clientURL.Path = clientURL.Path + path
 
 	tmpl, err := template.New("endpoint_url").Parse(clientURL.Path)

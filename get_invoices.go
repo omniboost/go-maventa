@@ -126,7 +126,7 @@ type GetInvoicesResponseBody []struct {
 }
 
 func (r *GetInvoicesRequest) URL() url.URL {
-	return r.client.GetEndpointURL("/v1/invoices", r.PathParams())
+	return r.client.GetEndpointURL(r.client.BaseURL(), "/v1/invoices", r.PathParams())
 }
 
 func (r *GetInvoicesRequest) Do() (GetInvoicesResponseBody, error) {

@@ -96,7 +96,7 @@ func (r *GetStatusAuthenticatedRequest) NewResponseBody() *GetStatusAuthenticate
 type GetStatusAuthenticatedResponseBody struct{}
 
 func (r *GetStatusAuthenticatedRequest) URL() url.URL {
-	return r.client.GetEndpointURL("/status/authenticated", r.PathParams())
+	return r.client.GetEndpointURL(r.client.BaseURL(), "/status/authenticated", r.PathParams())
 }
 
 func (r *GetStatusAuthenticatedRequest) Do() (GetStatusAuthenticatedResponseBody, error) {
