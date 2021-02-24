@@ -382,14 +382,14 @@ func (c *Client) Do(req *http.Request, responseBody interface{}) (*http.Response
 		return httpResp, nil
 	}
 
-	apiError := APIError{}
+	apiError := APIError{Response: httpResp}
 	err = c.Unmarshal(httpResp.Body, &responseBody, &apiError)
 	if err != nil {
 		return httpResp, err
 	}
 
 	if apiError.Error() != "" {
-		return httpResp, &ErrorResponse{Response: httpResp, err: apiError}
+		return httpResp, &apiError
 	}
 
 	return httpResp, nil
@@ -479,7 +479,7 @@ type ErrorResponse struct {
 }
 
 func (r ErrorResponse) Error() string {
-	if r.Error == nil {
+	if r.err == nil {
 		return ""
 	}
 	return r.err.Error()
@@ -487,6 +487,8 @@ func (r ErrorResponse) Error() string {
 
 // {"code":"invoice_create_api_error","message":"Error while creating invoice","details":["ERROR: INVOICE DATE NOT FOUND"]}
 type APIError struct {
+	Response *http.Response `json:"-"`
+
 	Code    string   `json:"code"`
 	Message string   `json:"message"`
 	Details []string `json:"details"`
